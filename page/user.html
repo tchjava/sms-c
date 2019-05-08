@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>用户管理</title>
+    <link rel="stylesheet" href="../assets/libs/layui/css/layui.css"/>
+    <link rel="stylesheet" href="../assets/module/admin.css"/>
+    <link rel="stylesheet" href="../assets/module/formSelects/formSelects-v4.css"/>
+</head>
+<body>
+
+<!-- 页面加载loading -->
+<!-- <div class="page-loading">
+    <div class="ball-loader">
+        <span></span><span></span><span></span><span></span>
+    </div>
+</div> -->
+
+<!-- 正文开始 -->
+<div class="layui-fluid">
+    <div class="layui-card">
+        <div class="layui-card-body">
+            <div class="layui-form toolbar">
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <select id="sltKey">
+                            <option value="">请选择状态</option>
+                            <option value="00A">正常</option>
+                            <option value="00B">锁定</option>
+                        </select>
+                    </div>
+                    <div class="layui-inline">
+                        <input id="edtSearch" class="layui-input" type="text" placeholder="输入关键字"/>
+                    </div>
+                    <div class="layui-inline" id="side">
+                    </div>
+                </div>
+            </div>
+
+            <table class="layui-table" id="userTable" lay-filter="userTable"></table>
+        </div>
+    </div>
+</div>
+<!--高级查询部分-->
+<script type="text/html" id="tpl">
+    {{# layui.each(d,function(index,item){ }}
+        {{# if(item==='student:list'){  }}
+             <button id="btnSearch" class="layui-btn icon-btn"><i class="layui-icon">&#xe615;</i>搜索</button>
+         {{#} }}
+        {{# if(item==='student:add'){  }}
+            <button id="btnAdd" class="layui-btn icon-btn"><i class="layui-icon">&#xe654;</i>添加</button>
+        {{#} }}
+    {{# }); }}
+</script>
+<!-- 表格操作列 -->
+<script type="text/html" id="tableBar">
+    {{# layui.each(d,function(index,item){ }}
+        {{# if(item==='student:update'){ }}
+            <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="edit">修改</a>
+         {{#} }}
+        {{# if(item==='student:del'){ }}
+            <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+        {{#} }}
+        {{# if(item==='student:repwd'){ }}
+            <a class="layui-btn layui-btn-xs" lay-event="reset">重置密码</a>
+        {{#} }}
+    {{# });}}
+</script>
+<!-- 表格状态列 -->
+<script type="text/html" id="tableState">
+    <input type="checkbox" lay-filter="ckState" value="{{d.id}}" lay-skin="switch"
+           lay-text="正常|锁定" {{d.status=='00A'?'checked':''}}/>
+</script>
+<!-- 表单弹窗 -->
+<script type="text/html" id="modelUser">
+    <form id="modelUserForm" lay-filter="modelUserForm" class="layui-form model-form">
+        <input name="id" hidden="hidden"/>
+        <div class="layui-form-item">
+            <label class="layui-form-label">账号</label>
+            <div class="layui-input-block">
+                <input name="account" placeholder="请输入账号" type="text" class="layui-input" maxlength="20"
+                       lay-verType="tips" lay-verify="required" required/>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">昵称</label>
+            <div class="layui-input-block">
+                <input name="nickname" placeholder="请输入昵称" type="text" class="layui-input" maxlength="20"
+                       lay-verType="tips" lay-verify="required" required/>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">邮箱</label>
+            <div class="layui-input-block">
+                <input name="email" placeholder="请输入邮箱" type="email" class="layui-input" maxlength="20"
+                       lay-verType="tips" lay-verify="required|email" required/>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">真实名称</label>
+            <div class="layui-input-block">
+                <input name="username" placeholder="请输入真实名称" type="text" class="layui-input" maxlength="20"
+                       lay-verType="tips" lay-verify="required" required/>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">性别</label>
+            <div class="layui-input-block">
+                <input type="radio" name="gender" value="男" title="男" checked/>
+                <input type="radio" name="gender" value="女" title="女"/>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">角色</label>
+            <div class="layui-input-block">
+                <select name="roleId" xm-select="roleId" lay-verType="tips" lay-verify="required">
+                    <!--<option value="1">管理员</option>-->
+                    <!--<option value="2">普通用户</option>-->
+                    <!--<option value="3">游客</option>-->
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item text-right">
+            <button class="layui-btn layui-btn-primary" type="button" ew-event="closePageDialog">取消</button>
+            <button class="layui-btn" lay-filter="modelUserSubmit" lay-submit>保存</button>
+        </div>
+    </form>
+</script>
+
+<!--js部分 -->
+<script type="text/javascript" src="../assets/libs/layui/layui.js"></script>
+ <script type="text/javascript" src="../assets/js/common.js"></script>
+ <script type="text/javascript" src="../assets/js/util.js"></script>
+<script>
+    layui.use(['layer', 'form', 'table', 'util','admin','formSelects'], function () {
+        var $ = layui.jquery;
+        var layer = layui.layer;
+        var form = layui.form;
+        var table = layui.table;
+        var util = layui.util;
+        var admin=layui.admin;
+        var formSelects=layui.formSelects;
+        var laytpl=layui.laytpl;
+
+        //加载按钮
+        var percodes=[];
+        admin.http('/sms/index','post',null,function (res) {
+            if (res.result.success) {
+                percodes=res.permissions;
+            }
+        },false);
+        ls(laytpl,percodes,'side',tpl);
+        ls(laytpl,percodes,'tableBar',tableBar);
+
+
+        // 渲染表格
+        var insTb = table.render({
+            elem: '#userTable',
+            url: '/sms/student/list',
+            page: true,
+            method:"post",
+            contentType:"application/json",
+            cellMinWidth: 100,
+            cols: [[
+                {type: 'numbers'},
+                {field: 'account', title: '账号'},
+                {field:'username',title:'真实名称'},
+                {field: 'nickname', title: '昵称'},
+                {field: 'gender', title: '性别'},
+                {
+                    templet: function (d) {
+                        return util.toDateString(d.createTime);
+                    }, title: '创建时间'
+                },
+                {field:'status',templet: '#tableState', title: '状态'},
+                {align: 'center', toolbar: '#tableBar', title: '操作', minWidth: 200}
+            ]]
+        });
+
+        // 添加
+        $('#btnAdd').click(function () {
+            showEditModel();
+        });
+
+        // 搜索
+        $('#btnSearch').click(function () {
+            var key = $('#sltKey').val();
+            var value = $('#edtSearch').val();
+            insTb.reload({where: {status:key,keyword:value}});
+        });
+
+        // 工具条点击事件
+        table.on('tool(userTable)', function (obj) {
+            var data = obj.data;
+            var layEvent = obj.event;
+            if (layEvent === 'edit') { // 修改
+                showEditModel(data);
+            } else if (layEvent === 'del') { // 删除
+                doDel(data.id, data.username);
+            } else if (layEvent === 'reset') { // 重置密码
+                resetPsw(data.id, data.username);
+            }
+        });
+
+        // 显示表单弹窗
+        function showEditModel(mUser) {
+
+            admin.open({
+                type: 1,
+                title: (mUser ? '修改' : '添加') + '用户',
+                content: $('#modelUser').html(),
+                success: function (layero, dIndex) {
+                    $(layero).children('.layui-layer-content').css('overflow', 'visible');
+                    var url = mUser ? '/sms/student/update' : '/sms/student/regist';
+                    //查询下拉数据
+                    showSelect();
+                    // 回显数据
+                    var roleIds =new Array();
+                    if (mUser) {
+                        $('input[name="account"]').attr('readonly', 'readonly');
+                        form.val('modelUserForm', mUser);
+                        //查询该用户的角色
+                        admin.http('/sms/staff/query-s/'+mUser.id,'post',null,function(res){
+
+                            res.roles.forEach(function(value){
+                                roleIds.push(value);
+                            })
+                        },false);
+                    } else {
+                        form.render('radio');
+                    }
+                    formSelects.render('roleId', {init: roleIds});
+                    // 表单提交事件
+                    form.on('submit(modelUserSubmit)', function (data) {
+                        //data.field.staffTypeIds = formSelects.value('roleId', 'valStr');
+                        data.field.staffTypeIds = formSelects.value('roleId','val');
+                        layer.load(2);
+                        admin.http(url,'post',data.field,function(resp){
+                            layer.closeAll('loading');
+                            if(resp.result.success){
+                                layer.close(dIndex)
+                                layer.msg(mUser?'更新成功':'添加成功',{time:500});
+                                insTb.reload({});
+                            }else{
+                                layer.msg(resp.result.message,{time:500})
+                            }
+                        })
+                        return false;
+                    });
+                }
+            });
+        }
+
+        // 删除
+        function doDel(id, username) {
+            top.layer.confirm('确定要删除“' + username + '”吗？', {
+                skin: 'layui-layer-admin'
+            }, function (i) {
+                top.layer.close(i);
+                layer.load(2);
+                admin.http('/sms/student/del/'+id,'post',null,function(res){
+                    layer.closeAll('loading');
+                    if(res.result.success){
+                        layer.msg('删除成功',{time:600});
+                        insTb.reload({});
+                    }else{
+                        layer.msg(res.result.message,{time:600})
+                    }
+                });
+            });
+        }
+
+        // 修改用户状态
+        form.on('switch(ckState)', function (obj) {
+            layer.load(2);
+            admin.http('/sms/student/update','post',{
+                id: obj.elem.value,
+                status: obj.elem.checked ? '00A' : '00B'
+            },function (res) {
+                layer.closeAll('loading');
+                if (res.result.success==true) {
+                    layer.msg(obj.elem.checked ? '已启用' : '已停用',{time:500});
+                } else {
+                    layer.msg(res.result.message, {icon: 2});
+                    $(obj.elem).prop('checked', !obj.elem.checked);
+                    form.render('checkbox');
+                }
+            })
+        });
+
+        // 重置密码
+        function resetPsw(id, username) {
+            top.layer.confirm('确定要重置“' + username + '”的登录密码吗？', {
+                skin: 'layui-layer-admin'
+            }, function (i) {
+                top.layer.close(i);
+                layer.load(2);
+                admin.http('/sms/student/repwd/'+id,'post',null,function(res){
+                   layer.closeAll('loading');
+                   if(res.result.success){
+                       layer.msg('重置密码成功',{time: 600});
+                   }else{
+                       layer.msg(res.result.message,{time:600})
+                   }
+                });
+            });
+        }
+        //回显下拉
+        function showSelect() {
+            admin.http('/sms/staff/list','post',{},function(res){
+                result=res.items;
+                for(var i=0;i<result.length;i++){
+                    $("select[name='roleId']").append(new Option(result[i].name, result[i].id));
+                }
+            },false);
+        };
+    });
+
+ </script>
+
+</body>
+</html>

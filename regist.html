@@ -1,0 +1,130 @@
+
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>注册 - gaby</title>
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+  <link rel="stylesheet" href="./layui/css/layui.css" media="all">
+  <link rel="stylesheet" href="./layui/layuiadmin/style/admin.css" media="all">
+  <link rel="stylesheet" href="./layui/layuiadmin/style/login.css" media="all">
+</head>
+<body>
+
+
+  <div class="layadmin-user-login layadmin-user-display-show" id="LAY-user-login" style="display: none;">
+    <div class="layadmin-user-login-main">
+      <div class="layadmin-user-login-box layadmin-user-login-header">
+        <h2>学生管理系统</h2>
+        <p>一路有你</p>
+      </div>
+      <div class="layadmin-user-login-box layadmin-user-login-body layui-form" lay-filter="form">
+        <div class="layui-form-item">
+          <label class="layadmin-user-login-icon layui-icon layui-icon-cellphone" for="LAY-user-login-cellphone"></label>
+          <input type="text" name="account" id="LAY-user-login-cellphone" lay-verify="required|account" lay-verType="tips" placeholder="帐号" class="layui-input">
+        </div>
+        <div class="layui-form-item">
+          <label class="layadmin-user-login-icon layui-icon layui-icon-password" for="LAY-user-login-password"></label>
+          <input type="password" name="pwd" id="LAY-user-login-password" lay-verify="pass" lay-verType="tips" placeholder="密码" class="layui-input">
+        </div>
+        <div class="layui-form-item">
+          <label class="layadmin-user-login-icon layui-icon layui-icon-password" for="LAY-user-login-repass"></label>
+          <input type="password" name="repwd" id="LAY-user-login-repass" lay-verify="repass" lay-verType="tips" placeholder="确认密码" class="layui-input">
+        </div>
+        <div class="layui-form-item">
+            <label class="layadmin-user-login-icon layui-icon layui-icon-username" for="LAY-user-login-nickname"></label>
+            <input type="text" name="username" id="LAY-user-login-nickname" lay-verify="required" lay-verType="tips" placeholder="真实名称" class="layui-input">
+          </div>
+        <div class="layui-form-item">
+          <label class="layadmin-user-login-icon layui-icon layui-icon-username" for="LAY-user-login-nickname"></label>
+          <input type="text" name="nickname" id="LAY-user-login-nickname" lay-verify="required" lay-verType="tips" placeholder="昵称" class="layui-input">
+        </div>
+        <div class="layui-form-item">
+            <label class="layadmin-user-login-icon layui-icon layui-icon-vercode" for="LAY-user-login-nickname"></label>
+            <input type="email" name="email" id="LAY-user-login-nickname" lay-verify="email" lay-verType="tips" placeholder="邮箱" class="layui-input">
+          </div>
+        <div class="layui-form-item">
+          <button class="layui-btn layui-btn-fluid" lay-submit lay-filter="LAY-user-reg-submit">注 册</button>
+        </div>
+        <div class="layui-trans layui-form-item layadmin-user-login-other">
+          <a href="login.html" class="layadmin-user-jump-change layadmin-link layui-hide-xs">用已有帐号登入</a>
+          <a href="login.html" class="layadmin-user-jump-change layadmin-link layui-hide-sm layui-show-xs-inline-block">登入</a>
+        </div>
+      </div>
+    </div>
+    
+    <div class="layui-trans layadmin-user-login-footer">
+      <p>© 2018 <a href="http://www.layui.com/" target="_blank">tjlou.com</a></p>
+    </div>
+
+  </div>
+
+  <script src="./layui/layui.js"></script>  
+  <script>
+        layui.use(['form'], function(){
+           var form = layui.form
+           ,layer = layui.layer
+           $=layui.jquery;
+           //自定义验证规则
+           form.verify({
+               account: function(value){
+               if(value.length < 5){
+                   return '标题至少得5个字符啊';
+               }
+               var message="";
+               $.ajax({
+                   url: "/sms/student/isreg",
+                   type: "post",
+                   contentType: "application/json",
+                   dataType:"json",
+                   async:false,
+                   data: JSON.stringify({account:value}),
+                   success: function (resp) {
+                       if (resp.result.success != true) {
+                           message=resp.result.message;
+                       }
+                   }
+               });
+                if(message!=""){
+                    return message;
+                }
+               }
+               ,pass: [
+               /^[\S]{6,12}$/
+               ,'密码必须6到12位，且不能出现空格'
+               ]
+               ,repass:function(value){
+                    if($("#LAY-user-login-password").val()!=value){
+                        return "两次输入的密码不一致";
+                    }
+               }
+           });
+           //监听提交
+           form.on('submit(LAY-user-reg-submit)', function(data){
+                
+            $.ajax({
+                url:"/sms/student/regist",
+                type:"post",
+                contentType:"application/json",
+                dataType:"json",
+                data:JSON.stringify(data.field),
+                success:function(resp){
+                    if(resp.result.success==true){
+                        layer.msg('注册成功',{time:1000});
+                        $("input").val("");
+                    }else{
+                        layer.msg(resp.result.message,{time:1000});
+                    }
+                }
+            });
+               return false;
+           })
+        });
+
+     </script>
+  
+</body>
+</html>

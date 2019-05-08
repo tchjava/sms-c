@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+<script id="demo" type="text/html">
+    <h3>{{ d.title }}</h3>
+    <ul>
+        {{#  layui.each(d.list, function(index, item){ }}
+        <li>
+            <span>{{ item.modname }}</span>
+            <span>{{ item.alias }}：</span>
+            <span>{{ item.site || '' }}</span>
+        </li>
+        {{#  }); }}
+        {{#  if(d.list.length === 0){ }}
+        无数据
+        {{#  } }}
+    </ul>
+</script>
+<div id="side"></div>
+<script id="index" type="text/html">
+    <div class="layui-side-scroll">
+        <ul class="layui-nav layui-nav-tree" lay-filter="admin-side-nav" lay-accordion="true" style="margin-top: 15px;">
+            {{# layui.each(d,function(index,item){ }}
+            <li class="layui-nav-item">
+                <a lay-href="{{item.url}}"><i class="layui-icon layui-icon-set"></i>&emsp;<cite>{{item.name}}</cite></a>
+                {{# if(item.subMenus.length!=0){ }}
+                    <dl class="layui-nav-child">
+                        {{# layui.each(item.subMenus,function(index,subMenu){ }}
+                        <dd>
+                            <a lay-href="{{subMenu.url}}">{{subMenu.name}}</a>
+                        </dd>
+                        {{#  }); }}
+                    </dl>
+                {{# } }}
+            </li>
+            {{# }); }}
+            <li class="layui-nav-item">
+                <a lay-href="javascript:;"><i class="layui-icon layui-icon-engine"></i>&emsp;<cite>系统监控</cite></a>
+                <dl class="layui-nav-child">
+                    <dd>
+                        <a lay-href="druid">Druid监控</a>
+                    </dd>
+                </dl>
+            </li>
+        </ul>
+
+    </div>
+</script>
+
+<div id="view"></div>
+<script src="assets/libs/layui/layui.js"></script>
+<script>
+    layui.use('laytpl',function(){
+        var laytpl=layui.laytpl;
+        var data = { //数据
+            "title":"Layui常用模块"
+            ,"list":[{"modname":"弹层","alias":"layer","site":"layer.layui.com"},{"modname":"表单","alias":"form"}]
+        }
+        var getTpl = demo.innerHTML
+            ,view = document.getElementById('view');
+        laytpl(getTpl).render(data, function(html){
+            view.innerHTML = html;
+        });
+
+        var side_data=[{"name":"Dashboard","url":"javascript:;","icon":"layui-icon layui-icon-home","subMenus":[{"name":"控制台","url":"#/console/console1"},{"name":"分析页","url":"#/console/console2"},{"name":"欢迎页","url":"#/console/welcome"}]},{"name":"系统管理","icon":"layui-icon layui-icon-set","url":"javascript:;","subMenus":[{"name":"用户管理","url":"#/system/user"},{"name":"角色管理","url":"#/system/role"},{"name":"权限管理","url":"#/system/authorities"},{"name":"登录日志","url":"#/system/loginRecord"}]}]
+        var getIndexTpl = index.innerHTML,
+            side = document.getElementById('side');
+        laytpl(getIndexTpl).render(side_data,function(html){
+            side.innerHTML=html;
+        });
+    });
+
+</script>
+</body>
+</html>
