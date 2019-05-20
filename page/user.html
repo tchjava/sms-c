@@ -54,6 +54,8 @@
             <button id="btnAdd" class="layui-btn icon-btn"><i class="layui-icon">&#xe654;</i>添加</button>
         {{#} }}
     {{# }); }}
+
+    <button id="export" class="layui-btn icon-btn"><i class="layui-icon">&#xe615;</i>导出</button>
 </script>
 <!-- 表格操作列 -->
 <script type="text/html" id="tableBar">
@@ -190,6 +192,16 @@
             var key = $('#sltKey').val();
             var value = $('#edtSearch').val();
             insTb.reload({where: {status:key,keyword:value}});
+        });
+
+        //导出
+        $('#export').click(function(){
+            console.log("导出..");
+            table.exportFile(['名字','性别','年龄'], [
+                ['张三','男','20'],
+                ['李四','女','18'],
+                ['王五','女','19']
+            ], 'csv'); //默认导出 csv，也可以为：xls
         });
 
         // 工具条点击事件
